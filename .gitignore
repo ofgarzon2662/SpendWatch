@@ -1,0 +1,23 @@
+# CloudBank Fund Sentinel
+
+# Drupal codebase (large, has its own repo)
+drupal/
+
+# Environment and secrets
+.env
+.env.*
+*.secret
+
+# N8N exports with credentials
+*credentials*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings (machine-specific)
+.claude/settings.local.json
+
+# Editor
+.vscode/
+*.swp
