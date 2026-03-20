@@ -18,6 +18,9 @@ Thumbs.db
 # Claude Code local settings (machine-specific)
 .claude/settings.local.json
 
+# Test fund IDs (real operational identifiers — never commit)
+.claude/TEST_FUNDS.md
+
 # Editor
 .vscode/
 *.swp
