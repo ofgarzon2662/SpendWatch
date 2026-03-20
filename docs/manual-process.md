@@ -217,16 +217,42 @@ Before sending Warning 1 on a newly detected CBF fund:
 
 ---
 
+## CBF Migration Offer Rule (updated 2026-03-19, per Shava)
+
+**CBF only — does not apply to NAIRR.**
+
+Always offer the ACCESS migration option before off-boarding. Never skip it.
+The migration recommendation is tailored by monthly spend (`daily_rate × 30`):
+
+| monthly_spend | Recommendation in ticket |
+|---|---|
+| < $3,083/month (< $37K/year) | Encourage migration to ACCESS — good fit, can stay on CloudBank |
+| ≥ $3,083/month (≥ $37K/year) | Include migration offer, but also write a note in the sheet: "High spender (~$Xk/month, ~$Xk/year) — may be a better fit for NAIRR, review with Shava" |
+
+The $37K/year threshold (~$3,083/month) reflects what CloudBank can sustainably support. Above that, NAIRR is a better fit. The decision is still human-reviewed — N8N flags it, Fernando and Shava decide.
+
+**monthly_spend source: Kion** — use `POST /v3/spend-report/funding-source` with the **last full calendar month** (not current month — partial data). Sum `spend` across all accounts for the fund. Fallback: `daily_rate × 30` if Kion unavailable.
+
+If `monthly_spend ≥ $3,083`: Slack Fernando — "Fund X spending ~$Y/month (~$Z/year), exceeds $37K/year threshold, likely NAIRR candidate. W1 sent."
+
+### ACCESS migration text (CBF W1 — approved by Shava)
+
+> If you'd like to continue running on CloudBank, please migrate your account to ACCESS. You should have received an email on March 5 with instructions asking you to complete the migration by May 1. We recommend starting the migration as soon as possible since you are now overspent. Just as a reminder, instructions can be found here: https://www.cloudbank.org/training/access-cloudbank-research.
+
+This replaces the previous text that said CloudBank "will transition in the next few months" — CloudBank is already in production.
+
+---
+
 ## Warning Email Templates Reference
 
 See `docs/templates.md` *(to be created in Sprint 3)* for full LLM prompt templates for each warning type.
 
 | Template ID | Used for |
 |---|---|
-| `cbf_w1` | CBF Warning 1 (any tier) |
-| `cbf_w2` | CBF Warning 2 |
+| `cbf_w1` | CBF Warning 1 (any tier) — always includes ACCESS migration offer |
+| `cbf_w1_tier3` | CBF Warning 1, Tier 3 urgent — includes migration offer + heavy spend language |
+| `cbf_w2` | CBF Warning 2 — re-emphasizes migration offer before escalating |
 | `cbf_w3` | CBF Warning 3 + closing notice |
-| `cbf_w1_tier3` | CBF Warning 1, Tier 3 urgent |
 | `nairr_w1_10pct` | NAIRR ≤10% Warning 1 (includes supplement options) |
 | `nairr_24h` | NAIRR 24h ultimatum |
 | `nairr_overspend_strong` | NAIRR Overspend initial strong message |

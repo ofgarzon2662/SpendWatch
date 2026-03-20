@@ -60,17 +60,51 @@ IF status == w1_sent (NAIRR) AND days_since_w1 >= 2:
 
 **Inputs to LLM per ticket:**
 - fund_id, PI name, funder, balance amounts, balance %, daily_rate
+- `monthly_spend` from Kion (CBF only — drives migration recommendation, see below)
 - days_left (NAIRR only), cloud_providers
 - warning number, tier
 - template_id (determines tone and content)
+
+**CBF monthly_spend: get from Kion (not estimated)**
+
+Use `POST /v3/spend-report/funding-source` with **last full calendar month**:
+```json
+{
+  "ids": [fund_id],
+  "start_datecode": 202602,
+  "end_datecode": 202603
+}
+```
+Sum `spend` across all returned rows for that fund. This is actual billing data.
+Fallback: `daily_rate × 30` if Kion call fails.
+
+**CBF migration recommendation logic (per Shava, 2026-03-19 — threshold $37K/year):**
+```
+IF monthly_spend < 3083:   // < $37K/year
+    → include ACCESS migration text in ticket
+    → no Slack
+
+IF monthly_spend >= 3083:  // >= $37K/year
+    → include ACCESS migration text in ticket
+    → write note in sheet: "High spender (~$Xk/month, ~$Xk/year) — NAIRR candidate"
+    → Slack Fernando:
+       "Fund {fund_id} is spending ~${monthly_spend}/month (${annual}/year).
+        Exceeds $37K/year threshold — likely a better fit for NAIRR.
+        W1 sent to PI. Zendesk: {ticket_link}"
+```
+
+Always include the migration offer. Never skip it for CBF. NAIRR is unaffected.
+
+**Approved ACCESS migration text for CBF W1/W2:**
+> If you'd like to continue running on CloudBank, please migrate your account to ACCESS. You should have received an email on March 5 with instructions asking you to complete the migration by May 1. We recommend starting the migration as soon as possible since you are now overspent. Just as a reminder, instructions can be found here: https://www.cloudbank.org/training/access-cloudbank-research.
 
 **Template IDs:**
 
 | Template ID | When used | Key elements |
 |---|---|---|
-| `cbf_w1` | CBF first warning (T1/T2) | Overspending notice, ACCESS migration offer |
-| `cbf_w1_tier3` | CBF first warning (T3) | Urgent: heavy spending, 24h or we stop instances |
-| `cbf_w2` | CBF second warning | Confirm receipt, measures, offboarding risk |
+| `cbf_w1` | CBF first warning (T1/T2) | Overspending notice + ACCESS migration offer (required) |
+| `cbf_w1_tier3` | CBF first warning (T3) | Urgent: heavy spending, 24h ultimatum + migration offer |
+| `cbf_w2` | CBF second warning | Confirm receipt, re-emphasize migration offer, offboarding risk |
 | `cbf_w3` | CBF third warning + closing | Final warning, fund being set to Closing |
 | `nairr_w1_10pct` | NAIRR ≤10% warning | Resource %, supplement instructions, ask about service types |
 | `nairr_24h` | NAIRR spending continues after 48h | 24h ultimatum: stop or we do |
